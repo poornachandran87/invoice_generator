@@ -1,13 +1,30 @@
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 import React from 'react'
-import { Modal, Table } from 'react-bootstrap'
+import { Button, Modal, Table } from 'react-bootstrap'
 
 const InvoiceModel = (props) => {
-    console.log(props);
+    const generateInvoice = () =>{
+        html2canvas(document.querySelector("#invoicecapture")).then((canvas) => {
+            const imgData = canvas.toDataURL("img/png",1.0)
+            const pdf = new jsPDF({
+                orientation : "portrait",
+                unit : "pt",
+                format: [612,792]
+            })
+            pdf.internal.scaleFactor = 1;
+            const imgProps = pdf.getImageProperties(imgData)
+            const pdfWidth = pdf.internal.pageSize.getWidth()
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+            pdf.addImage(imgData, 'PNG', 0,0, pdfWidth,pdfHeight)
+            pdf.save(props.info.billTo + "_invoice.pdf")
+        })
+    }
     return (
         <div>
             <Modal
                 show={props.showModal}
-                onHide={props.closeModsl}
+                onHide={props.closeModal}
                 size='lg'
                 centered >
                 <div id='invoicecapture' >
@@ -109,6 +126,11 @@ const InvoiceModel = (props) => {
                         </Table>
 
                     </div>
+
+                </div>
+                <div className='pb-4 px-4'>
+
+                    <Button variant='primary' className='d-block w-100 mt-3 mt-md-0' onClick={generateInvoice}> Download </Button>
 
                 </div>
             </Modal>
